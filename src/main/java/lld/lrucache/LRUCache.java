@@ -18,7 +18,7 @@ public class LRUCache<K, V> {
         tail.setPrev(head);
     }
 
-    public V get(K key){
+    public synchronized V get(K key){
         if (map.containsKey(key)){
             var node = map.get(key);
             moveToFront(node);
@@ -26,7 +26,7 @@ public class LRUCache<K, V> {
         }else return null;
     }
 
-    public void put(K key, V value){
+    public synchronized void put(K key, V value){
         if (map.containsKey(key)){
             var existing = map.get(key);
             existing.setValue(value);
@@ -41,6 +41,10 @@ public class LRUCache<K, V> {
         Node<K, V> node = new Node<>(key, value);
         addToFront(node);
         map.put(key, node);
+    }
+
+    public synchronized int size() {
+        return map.size();
     }
 
     private void addToFront(Node<K, V> curr) {
