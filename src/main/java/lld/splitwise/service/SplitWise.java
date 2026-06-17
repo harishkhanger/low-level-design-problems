@@ -10,9 +10,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/*
+TODO: Need to add group support as well
+ */
 public class SplitWise {
-    private Map<User, Map<User, Double>> balances;
-    private List<Expense> expenseList;
+    private final Map<User, Map<User, Double>> balances;
+    private final List<Expense> expenseList;
 
     public SplitWise() {
         this.balances = new HashMap<>();
