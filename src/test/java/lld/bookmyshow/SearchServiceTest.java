@@ -1,5 +1,8 @@
 package lld.bookmyshow;
 
+import lld.bookmyshow.model.*;
+import lld.bookmyshow.service.*;
+
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;

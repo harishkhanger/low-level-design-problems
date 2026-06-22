@@ -1,4 +1,4 @@
-package lld.bookmyshow;
+package lld.bookmyshow.model;
 
 public enum BookingStatus {
     PENDING,

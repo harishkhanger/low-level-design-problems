@@ -1,4 +1,6 @@
-package lld.bookmyshow;
+package lld.bookmyshow.service;
+
+import lld.bookmyshow.model.*;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;

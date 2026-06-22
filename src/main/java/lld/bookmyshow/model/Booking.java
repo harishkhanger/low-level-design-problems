@@ -1,4 +1,4 @@
-package lld.bookmyshow;
+package lld.bookmyshow.model;
 
 import java.util.List;
 

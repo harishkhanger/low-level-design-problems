@@ -1,4 +1,6 @@
-package lld.bookmyshow;
+package lld.bookmyshow.service;
+
+import lld.bookmyshow.model.*;
 
 import java.time.Clock;
 import java.time.Duration;
