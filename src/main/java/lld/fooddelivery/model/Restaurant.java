@@ -7,11 +7,13 @@ import java.util.Optional;
 public class Restaurant {
     private final String id;
     private final String name;
+    private final Location location;
     private final List<MenuItem> menu = new ArrayList<>();
 
-    public Restaurant(String id, String name) {
+    public Restaurant(String id, String name, Location location) {
         this.id = id;
         this.name = name;
+        this.location = location;
     }
 
     public String getId() {
@@ -20,6 +22,10 @@ public class Restaurant {
 
     public String getName() {
         return name;
+    }
+
+    public Location getLocation() {
+        return location;
     }
 
     public void addMenuItem(MenuItem item) {
