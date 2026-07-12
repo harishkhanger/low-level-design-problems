@@ -3,6 +3,7 @@ package lld.blockingqueue;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class BoundedBlockingQueue<T> {
@@ -29,6 +30,35 @@ public class BoundedBlockingQueue<T> {
             lock.unlock();
         }
         filledSlots.release();
+    }
+
+    public boolean offer(T item, long timeout, TimeUnit unit) throws InterruptedException {
+        if (!emptySlots.tryAcquire(timeout, unit)) {
+            return false;
+        }
+        lock.lock();
+        try {
+            deque.addLast(item);
+        } finally {
+            lock.unlock();
+        }
+        filledSlots.release();
+        return true;
+    }
+
+    public T poll(long timeout, TimeUnit unit) throws InterruptedException {
+        if (!filledSlots.tryAcquire(timeout, unit)) {
+            return null;
+        }
+        lock.lock();
+        T item;
+        try {
+            item = deque.pollFirst();
+        } finally {
+            lock.unlock();
+        }
+        emptySlots.release();
+        return item;
     }
 
     public T take() throws InterruptedException {

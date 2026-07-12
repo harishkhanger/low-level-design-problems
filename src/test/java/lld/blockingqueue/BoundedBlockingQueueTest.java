@@ -8,9 +8,12 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -59,6 +62,42 @@ class BoundedBlockingQueueTest {
         assertEquals(1, queue.take());
         producer.join(1000);
         assertEquals(1, completed.get(), "producer should proceed once a slot frees up");
+    }
+
+    @Test
+    @DisplayName("offer returns false and enqueues nothing when the queue stays full")
+    void offerTimesOutWhenFull() throws InterruptedException {
+        BoundedBlockingQueue<Integer> queue = new BoundedBlockingQueue<>(1);
+        assertTrue(queue.offer(1, 50, TimeUnit.MILLISECONDS));
+        assertFalse(queue.offer(2, 50, TimeUnit.MILLISECONDS), "second offer must time out");
+        assertEquals(1, queue.size(), "the timed-out item must not be enqueued");
+    }
+
+    @Test
+    @DisplayName("poll returns null when nothing arrives in time")
+    void pollTimesOutWhenEmpty() throws InterruptedException {
+        BoundedBlockingQueue<Integer> queue = new BoundedBlockingQueue<>(1);
+        assertNull(queue.poll(50, TimeUnit.MILLISECONDS));
+    }
+
+    @Test
+    @DisplayName("offer succeeds once a slot frees up within the timeout")
+    void offerSucceedsAfterSlotFrees() throws InterruptedException {
+        BoundedBlockingQueue<Integer> queue = new BoundedBlockingQueue<>(1);
+        queue.put(1);
+
+        Thread consumer = new Thread(() -> {
+            try {
+                Thread.sleep(50);
+                queue.take();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        });
+        consumer.start();
+
+        assertTrue(queue.offer(2, 1, TimeUnit.SECONDS), "offer should succeed after the take frees a slot");
+        consumer.join(1000);
     }
 
     @Test
