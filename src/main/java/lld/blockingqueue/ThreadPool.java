@@ -6,6 +6,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ThreadPool {
 
+    private static final Runnable POISON = () -> { };
+
     private final BoundedBlockingQueue<Runnable> queue;
     private final List<Thread> workers = new ArrayList<>();
     private final AtomicBoolean shutdown = new AtomicBoolean(false);
@@ -38,6 +40,9 @@ public class ThreadPool {
                 Thread.currentThread().interrupt();
                 return;
             }
+            if (task == POISON) {
+                return;
+            }
             try {
                 task.run();
             } catch (RuntimeException e) {
@@ -46,7 +51,16 @@ public class ThreadPool {
         }
     }
 
-    public void shutdown() {
+    public void shutdown() throws InterruptedException {
+        if (!shutdown.compareAndSet(false, true)) {
+            return;
+        }
+        for (int i = 0; i < workers.size(); i++) {
+            queue.put(POISON);
+        }
+    }
+
+    public void shutdownNow() {
         shutdown.set(true);
         for (Thread worker : workers) {
             worker.interrupt();

@@ -52,10 +52,34 @@ class ThreadPoolTest {
     }
 
     @Test
-    @DisplayName("shutdown terminates all workers")
-    void shutdownTerminatesWorkers() throws InterruptedException {
-        ThreadPool pool = new ThreadPool(3, 8);
+    @DisplayName("Graceful shutdown drains every queued task before workers exit")
+    void gracefulShutdownDrainsQueue() throws InterruptedException {
+        final int tasks = 50;
+        ThreadPool pool = new ThreadPool(2, 8);
+        AtomicInteger completed = new AtomicInteger(0);
+
+        for (int i = 0; i < tasks; i++) {
+            pool.submit(() -> {
+                try {
+                    Thread.sleep(2);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+                completed.incrementAndGet();
+            });
+        }
+
         pool.shutdown();
+        pool.awaitTermination();
+
+        assertEquals(tasks, completed.get(), "no queued task may be abandoned on graceful shutdown");
+    }
+
+    @Test
+    @DisplayName("shutdownNow terminates idle workers immediately")
+    void shutdownNowTerminatesWorkers() throws InterruptedException {
+        ThreadPool pool = new ThreadPool(3, 8);
+        pool.shutdownNow();
         pool.awaitTermination();
     }
 
